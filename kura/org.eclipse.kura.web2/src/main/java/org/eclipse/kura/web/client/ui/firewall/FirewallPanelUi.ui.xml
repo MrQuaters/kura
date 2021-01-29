@@ -2,7 +2,7 @@
 
 <!--
 
-    Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
+    Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
   
     This program and the accompanying materials are made
     available under the terms of the Eclipse Public License 2.0
@@ -47,6 +47,8 @@
                         ui:field="portForwarding"/>
                     <b:TabListItem dataTarget="#ipForwardingPanel" text="IP Forwarding/Masquerading"
                         ui:field="ipForwarding" />
+                    <b:TabListItem dataTarget="#idsPanel" text="Ids"
+                        ui:field="ids" />
                 </b:NavTabs>
                 <b:TabContent>
                     <b:TabPane b:id="openPortsPanel" active="true">
@@ -57,6 +59,9 @@
                     </b:TabPane>
                     <b:TabPane b:id="ipForwardingPanel">
                         <firewall:NatTabUi ui:field="ipForwardingPanel"></firewall:NatTabUi>
+                    </b:TabPane>
+                    <b:TabPane b:id="idsPanel">
+                        <firewall:IdsTabUi ui:field="idsPanel"></firewall:IdsTabUi>
                     </b:TabPane>
                 </b:TabContent>
             </b:Well>

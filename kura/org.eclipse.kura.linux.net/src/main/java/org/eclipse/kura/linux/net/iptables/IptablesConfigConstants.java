@@ -87,6 +87,32 @@ public class IptablesConfigConstants {
             "-A input-kura -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j DROP",
             "-A output-kura -p icmp -m icmp --icmp-type 0 -m state --state RELATED,ESTABLISHED -j DROP" };
 
+    private static final String[] FLOODING_PROTECTION_PREROUTING = {
+            "-A prerouting-kura -m conntrack --ctstate INVALID -j DROP",
+            "-A prerouting-kura -p tcp ! --syn -m conntrack --ctstate NEW -j DROP",
+            "-A prerouting-kura -p tcp -m conntrack --ctstate NEW -m tcpmss ! --mss 536:65535 -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags SYN,RST SYN,RST -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags FIN,RST FIN,RST -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags FIN,ACK FIN -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ACK,URG URG -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ACK,FIN FIN -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ACK,PSH PSH -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ALL ALL -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ALL NONE -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ALL FIN,PSH,URG -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ALL SYN,FIN,PSH,URG -j DROP",
+            "-A prerouting-kura -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j DROP", 
+            "-A prerouting-kura -p icmp -j DROP",
+            "-A prerouting-kura -f -j DROP" };
+
+    private static final String[] FLOODING_PROTECTION = {
+            "-A input-kura -p tcp -m connlimit --connlimit-above 111 -j REJECT --reject-with tcp-reset",
+            "-A input-kura -p tcp --tcp-flags RST RST -m limit --limit 2/s --limit-burst 2 -j ACCEPT",
+            "-A input-kura -p tcp --tcp-flags RST RST -j DROP",
+            "-A input-kura -p tcp -m conntrack --ctstate NEW -m limit --limit 60/s --limit-burst 20 -j ACCEPT",
+            "-A input-kura -p tcp -m conntrack --ctstate NEW -j DROP" };
+
     protected IptablesConfigConstants() {
         // Empty constructor
     }

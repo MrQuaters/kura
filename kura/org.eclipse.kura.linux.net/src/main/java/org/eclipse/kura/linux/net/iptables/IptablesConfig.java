@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -46,6 +46,7 @@ public class IptablesConfig extends IptablesConfigConstants {
     private final Set<NATRule> autoNatRules;
     private final Set<NATRule> natRules;
     private boolean allowIcmp;
+    private boolean floodingProtectionStatus;
     private CommandExecutorService executorService;
 
     public IptablesConfig() {
@@ -60,6 +61,7 @@ public class IptablesConfig extends IptablesConfigConstants {
         this.portForwardRules = new LinkedHashSet<>();
         this.autoNatRules = new LinkedHashSet<>();
         this.natRules = new LinkedHashSet<>();
+        this.floodingProtectionStatus = false;
         this.executorService = executorService;
     }
 
@@ -70,7 +72,16 @@ public class IptablesConfig extends IptablesConfigConstants {
         this.autoNatRules = autoNatRules;
         this.natRules = natRules;
         this.allowIcmp = allowIcmp;
+        this.floodingProtectionStatus = false;
         this.executorService = executorService;
+    }
+
+    public boolean isFloodingProtectionEnabled() {
+        return this.floodingProtectionStatus;
+    }
+
+    public void setFloodingProtectionStatus(boolean floodingProtectionStatus) {
+        this.floodingProtectionStatus = floodingProtectionStatus;
     }
 
     /*

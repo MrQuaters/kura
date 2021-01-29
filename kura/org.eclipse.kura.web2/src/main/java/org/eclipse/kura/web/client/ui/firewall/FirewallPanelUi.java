@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
  * 
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -13,8 +13,12 @@
 package org.eclipse.kura.web.client.ui.firewall;
 
 import org.eclipse.kura.web.client.messages.Messages;
+import org.eclipse.kura.web.client.ui.EntryClassUi;
 import org.eclipse.kura.web.client.ui.Tab;
 import org.eclipse.kura.web.client.ui.Tab.RefreshHandler;
+import org.eclipse.kura.web.client.util.FailureHandler;
+import org.eclipse.kura.web.shared.service.GwtSecurityService;
+import org.eclipse.kura.web.shared.service.GwtSecurityServiceAsync;
 import org.gwtbootstrap3.client.ui.Anchor;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.Modal;
@@ -25,6 +29,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -42,8 +47,11 @@ public class FirewallPanelUi extends Composite {
     PortForwardingTabUi portForwardingPanel;
     @UiField
     NatTabUi ipForwardingPanel;
+    @UiField
+    IdsTabUi idsPanel;
 
     private static final Messages MSGS = GWT.create(Messages.class);
+    private final GwtSecurityServiceAsync gwtSecurityService = GWT.create(GwtSecurityService.class);
 
     @UiField
     HTMLPanel firewallIntro;
@@ -53,6 +61,8 @@ public class FirewallPanelUi extends Composite {
     TabListItem portForwarding;
     @UiField
     TabListItem ipForwarding;
+    @UiField
+    TabListItem ids;
 
     @UiField
     Modal dirtyModal;
@@ -65,6 +75,7 @@ public class FirewallPanelUi extends Composite {
     private Tab.RefreshHandler openPortsHandler;
     private Tab.RefreshHandler portForwardingHandler;
     private Tab.RefreshHandler ipForwardingHandler;
+    private Tab.RefreshHandler idsHandler;
 
     public FirewallPanelUi() {
 
@@ -73,6 +84,7 @@ public class FirewallPanelUi extends Composite {
         this.openPorts.setText(MSGS.firewallOpenPorts());
         this.portForwarding.setText(MSGS.firewallPortForwarding());
         this.ipForwarding.setText(MSGS.firewallNat());
+        this.ids.setText("Ids");
 
         this.openPortsHandler = new Tab.RefreshHandler(this.openPortsPanel);
         this.openPorts.addClickHandler(event -> handleEvent(event, this.openPortsHandler));
@@ -80,6 +92,24 @@ public class FirewallPanelUi extends Composite {
         this.portForwarding.addClickHandler(event -> handleEvent(event, this.portForwardingHandler));
         this.ipForwardingHandler = new Tab.RefreshHandler(this.ipForwardingPanel);
         this.ipForwarding.addClickHandler(event -> handleEvent(event, this.ipForwardingHandler));
+        this.idsHandler = new Tab.RefreshHandler(this.idsPanel);
+        this.ids.addClickHandler(event -> handleEvent(event, this.idsHandler));
+
+        this.gwtSecurityService.isIdsAvailable(new AsyncCallback<Boolean>() {
+
+            @Override
+            public void onSuccess(Boolean result) {
+                FirewallPanelUi.this.ids.setVisible(result);
+
+            }
+
+            @Override
+            public void onFailure(Throwable caught) {
+                EntryClassUi.hideWaitModal();
+                FailureHandler.handle(caught);
+
+            }
+        });
     }
 
     public void initFirewallPanel() {
@@ -91,13 +121,15 @@ public class FirewallPanelUi extends Composite {
     }
 
     public boolean isDirty() {
-        return this.openPortsPanel.isDirty() || this.portForwardingPanel.isDirty() || this.ipForwardingPanel.isDirty();
+        return this.openPortsPanel.isDirty() || this.portForwardingPanel.isDirty() || this.ipForwardingPanel.isDirty()
+                || this.idsPanel.isDirty();
     }
 
     public void setDirty(boolean b) {
         this.openPortsPanel.setDirty(b);
         this.portForwardingPanel.setDirty(b);
         this.ipForwardingPanel.setDirty(b);
+        this.idsPanel.setDirty(b);
     }
 
     private void showDirtyModal(TabListItem newTabListItem, RefreshHandler newTabRefreshHandler) {
@@ -135,6 +167,8 @@ public class FirewallPanelUi extends Composite {
         } else if (item.getDataTarget().equals("#portForwardingPanel")) {
             return this.portForwardingPanel;
         } else if (item.getDataTarget().equals("#ipForwardingPanel")) {
+            return this.ipForwardingPanel;
+        } else if (item.getDataTarget().equals("#idsPanel")) {
             return this.ipForwardingPanel;
         } else {
             return this.openPortsPanel;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2020 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2021 Eurotech and/or its affiliates and others
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -50,6 +50,7 @@ public class LinuxFirewall {
     private Set<NATRule> natRules = new LinkedHashSet<>();
     private boolean allowIcmp = false;
     private boolean allowForwarding = false;
+    private boolean floodingProtectionStatus = false;
     private final IptablesConfig iptables;
     private final CommandExecutorService executorService;
 
@@ -78,6 +79,7 @@ public class LinuxFirewall {
         this.natRules = this.iptables.getNatRules();
         this.allowIcmp = true;
         this.allowForwarding = false;
+        this.floodingProtectionStatus = iptables.isFloodingProtectionEnabled();
         logger.debug("initialize() :: Parsing current firewall configuration");
     }
 
@@ -379,6 +381,7 @@ public class LinuxFirewall {
         }
         IptablesConfig newIptables = new IptablesConfig(this.localRules, this.portForwardRules, this.autoNatRules,
                 this.natRules, this.allowIcmp, this.executorService);
+        iptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
         newIptables.applyRules();
         logger.debug("Managing port forwarding...");
         enableForwarding(this.allowForwarding);
@@ -418,6 +421,14 @@ public class LinuxFirewall {
 
     public void disableForwarding() {
         this.allowForwarding = false;
+    }
+
+    public boolean isFloodingProtectionEnabled() {
+        return this.floodingProtectionStatus;
+    }
+
+    public void setFloodingProtectionStatus(boolean status) {
+        this.floodingProtectionStatus = status;
     }
 
     private void update() throws KuraException {

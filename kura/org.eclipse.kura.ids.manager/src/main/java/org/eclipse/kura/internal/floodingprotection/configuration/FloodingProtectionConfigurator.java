@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright (c) 2021 Eurotech and/or its affiliates and others
  * 
@@ -26,6 +25,8 @@ import org.eclipse.kura.core.configuration.metatype.ObjectFactory;
 import org.eclipse.kura.core.configuration.metatype.Tad;
 import org.eclipse.kura.core.configuration.metatype.Tocd;
 import org.eclipse.kura.core.configuration.metatype.Tscalar;
+import org.eclipse.kura.executor.CommandExecutorService;
+import org.eclipse.kura.linux.net.iptables.LinuxFirewall;
 import org.eclipse.kura.security.IntrusionDetectionService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -34,14 +35,21 @@ import org.slf4j.LoggerFactory;
 public class FloodingProtectionConfigurator implements IntrusionDetectionService, SelfConfiguringComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(FloodingProtectionConfigurator.class);
-
     public static final String PID = "org.eclipse.kura.floodingprotection.configuration.FloodingProtectionConfigurator";
-
     private static final String DESCRIPTION_FAIL2BAN_SERVICE = "The service enables flooding protection mechanisms via iptables.";
-
     private static final String FLOODING_PROTECTION_ENABLED_PROP_NAME = "flooding.protection.enabled";
-
     private final Map<String, Object> properties = new HashMap<>();
+    private CommandExecutorService executorService;
+
+    protected void setCommandExecutorService(CommandExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    protected void unsetCommandExecutorService(CommandExecutorService executorService) {
+        if (this.executorService == executorService) {
+            this.executorService = null;
+        }
+    }
 
     protected void activate(ComponentContext componentContext, Map<String, Object> properties) {
         logger.info("Activating FloodingConfigurator...");
@@ -89,13 +97,10 @@ public class FloodingProtectionConfigurator implements IntrusionDetectionService
     private void setStatus(boolean status) throws KuraException {
         logger.info("Ids setting status: {}", status);
 
-        // LinuxFirewall linuxFirewall = LinuxFirewall.getInstance();
-        // linuxFirewall.setAllowFloodingProtection(status);
-        //
-        // linuxFirewall.enable();
-
+        LinuxFirewall linuxFirewall = new LinuxFirewall(this.executorService);
+        linuxFirewall.setFloodingProtectionStatus(status);
+        linuxFirewall.enable();
         this.properties.put(FLOODING_PROTECTION_ENABLED_PROP_NAME, status);
-
     }
 
     @Override

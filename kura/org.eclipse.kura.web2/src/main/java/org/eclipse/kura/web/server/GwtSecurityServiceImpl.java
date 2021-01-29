@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.kura.KuraException;
+import org.eclipse.kura.security.IntrusionDetectionService;
 import org.eclipse.kura.security.SecurityService;
 import org.eclipse.kura.web.server.util.ServiceLocator;
 import org.eclipse.kura.web.session.Attributes;
@@ -104,5 +105,20 @@ public class GwtSecurityServiceImpl extends OsgiRemoteServiceServlet implements 
         auditLogger.info(
                 "UI Security - Success - Successfully reloaded command line fingerprint for user: {}, session: {}",
                 session.getAttribute(Attributes.AUTORIZED_USER.getValue()), session.getId());
+    }
+
+    @Override
+    public boolean isIdsAvailable() {
+
+        try {
+            IntrusionDetectionService idsProtectionService = ServiceLocator.getInstance()
+                    .getService(IntrusionDetectionService.class);
+            if (idsProtectionService != null) {
+                return true;
+            }
+        } catch (GwtKuraException e) {
+            // No action
+        }
+        return false;
     }
 }
