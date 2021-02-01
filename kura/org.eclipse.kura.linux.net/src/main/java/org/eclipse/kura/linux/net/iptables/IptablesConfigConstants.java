@@ -6,8 +6,10 @@ public class IptablesConfigConstants {
     protected static final String FIREWALL_TMP_CONFIG_FILE_NAME = "/tmp/iptables";
     protected static final String FILTER = "filter";
     protected static final String NAT = "nat";
+    protected static final String MANGLE = "mangle";
     protected static final String STAR_NAT = "*" + NAT;
     protected static final String STAR_FILTER = "*" + FILTER;
+    protected static final String STAR_MANGLE = "*" + MANGLE;
     protected static final String COMMIT = "COMMIT";
     protected static final String IPTABLES_COMMAND = "iptables";
     protected static final String FORWARD = "FORWARD";
@@ -42,6 +44,7 @@ public class IptablesConfigConstants {
     protected static final String PREROUTING_ACCEPT_POLICY = ":PREROUTING ACCEPT [0:0]";
     protected static final String INPUT_ACCEPT_POLICY = ":INPUT ACCEPT [0:0]";
     protected static final String OUTPUT_ACCEPT_POLICY = ":OUTPUT ACCEPT [0:0]";
+    protected static final String FORWARD_ACCEPT_POLICY = ":FORWARD ACCEPT [0:0]";
     protected static final String FORWARD_DROP_POLICY = ":FORWARD DROP [0:0]";
     protected static final String INPUT_DROP_POLICY = ":INPUT DROP [0:0]";
     protected static final String[] IPTABLES_CREATE_INPUT_KURA_CHAIN = { IPTABLES_COMMAND, "-N", INPUT_KURA_CHAIN, "-t",
@@ -87,7 +90,7 @@ public class IptablesConfigConstants {
             "-A input-kura -p icmp -m icmp --icmp-type 8 -m state --state NEW,RELATED,ESTABLISHED -j DROP",
             "-A output-kura -p icmp -m icmp --icmp-type 0 -m state --state RELATED,ESTABLISHED -j DROP" };
 
-    private static final String[] FLOODING_PROTECTION_PREROUTING = {
+    protected static final String[] FLOODING_PROTECTION_PREROUTING = {
             "-A prerouting-kura -m conntrack --ctstate INVALID -j DROP",
             "-A prerouting-kura -p tcp ! --syn -m conntrack --ctstate NEW -j DROP",
             "-A prerouting-kura -p tcp -m conntrack --ctstate NEW -m tcpmss ! --mss 536:65535 -j DROP",
@@ -102,11 +105,10 @@ public class IptablesConfigConstants {
             "-A prerouting-kura -p tcp --tcp-flags ALL NONE -j DROP",
             "-A prerouting-kura -p tcp --tcp-flags ALL FIN,PSH,URG -j DROP",
             "-A prerouting-kura -p tcp --tcp-flags ALL SYN,FIN,PSH,URG -j DROP",
-            "-A prerouting-kura -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j DROP", 
-            "-A prerouting-kura -p icmp -j DROP",
-            "-A prerouting-kura -f -j DROP" };
+            "-A prerouting-kura -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j DROP",
+            "-A prerouting-kura -p icmp -j DROP", "-A prerouting-kura -f -j DROP" };
 
-    private static final String[] FLOODING_PROTECTION = {
+    protected static final String[] FLOODING_PROTECTION = {
             "-A input-kura -p tcp -m connlimit --connlimit-above 111 -j REJECT --reject-with tcp-reset",
             "-A input-kura -p tcp --tcp-flags RST RST -m limit --limit 2/s --limit-burst 2 -j ACCEPT",
             "-A input-kura -p tcp --tcp-flags RST RST -j DROP",

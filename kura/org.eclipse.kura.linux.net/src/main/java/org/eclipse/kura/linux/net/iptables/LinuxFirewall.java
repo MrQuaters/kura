@@ -381,7 +381,7 @@ public class LinuxFirewall {
         }
         IptablesConfig newIptables = new IptablesConfig(this.localRules, this.portForwardRules, this.autoNatRules,
                 this.natRules, this.allowIcmp, this.executorService);
-        iptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
+        newIptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
         newIptables.applyRules();
         logger.debug("Managing port forwarding...");
         enableForwarding(this.allowForwarding);
@@ -433,6 +433,7 @@ public class LinuxFirewall {
 
     private void update() throws KuraException {
         synchronized (lock) {
+            this.iptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
             this.iptables.clearAllKuraChains();
             applyRules();
             this.iptables.saveKuraChains();

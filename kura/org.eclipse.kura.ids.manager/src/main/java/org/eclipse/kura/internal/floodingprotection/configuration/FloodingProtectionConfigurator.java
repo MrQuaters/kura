@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eurotech and/or its affiliates and others
- * 
+ *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  * Eurotech
  ******************************************************************************/
@@ -39,6 +39,7 @@ public class FloodingProtectionConfigurator implements IntrusionDetectionService
     private static final String DESCRIPTION_FAIL2BAN_SERVICE = "The service enables flooding protection mechanisms via iptables.";
     private static final String FLOODING_PROTECTION_ENABLED_PROP_NAME = "flooding.protection.enabled";
     private final Map<String, Object> properties = new HashMap<>();
+    private LinuxFirewall linuxFirewall;
     private CommandExecutorService executorService;
 
     protected void setCommandExecutorService(CommandExecutorService executorService) {
@@ -54,6 +55,7 @@ public class FloodingProtectionConfigurator implements IntrusionDetectionService
     protected void activate(ComponentContext componentContext, Map<String, Object> properties) {
         logger.info("Activating FloodingConfigurator...");
 
+        this.linuxFirewall = new LinuxFirewall(this.executorService);
         doUpdate(properties);
 
         logger.info("Activating FloodingConfigurator... Done.");
@@ -97,9 +99,8 @@ public class FloodingProtectionConfigurator implements IntrusionDetectionService
     private void setStatus(boolean status) throws KuraException {
         logger.info("Ids setting status: {}", status);
 
-        LinuxFirewall linuxFirewall = new LinuxFirewall(this.executorService);
-        linuxFirewall.setFloodingProtectionStatus(status);
-        linuxFirewall.enable();
+        this.linuxFirewall.setFloodingProtectionStatus(status);
+        this.linuxFirewall.enable();
         this.properties.put(FLOODING_PROTECTION_ENABLED_PROP_NAME, status);
     }
 
