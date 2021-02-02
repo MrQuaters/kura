@@ -28,6 +28,7 @@ import org.eclipse.kura.executor.CommandExecutorService;
 import org.eclipse.kura.net.IP4Address;
 import org.eclipse.kura.net.IPAddress;
 import org.eclipse.kura.net.NetworkPair;
+import org.eclipse.kura.security.IntrusionDetectionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,7 @@ public class LinuxFirewall {
     private Set<NATRule> natRules = new LinkedHashSet<>();
     private boolean allowIcmp = false;
     private boolean allowForwarding = false;
-    private boolean floodingProtectionStatus = false;
+    private IntrusionDetectionConfiguration floodingProtectionConfiguration;
     private final IptablesConfig iptables;
     private final CommandExecutorService executorService;
 
@@ -79,7 +80,7 @@ public class LinuxFirewall {
         this.natRules = this.iptables.getNatRules();
         this.allowIcmp = true;
         this.allowForwarding = false;
-        this.floodingProtectionStatus = iptables.isFloodingProtectionEnabled();
+        this.floodingProtectionConfiguration = new IntrusionDetectionConfiguration();
         logger.debug("initialize() :: Parsing current firewall configuration");
     }
 
@@ -381,7 +382,7 @@ public class LinuxFirewall {
         }
         IptablesConfig newIptables = new IptablesConfig(this.localRules, this.portForwardRules, this.autoNatRules,
                 this.natRules, this.allowIcmp, this.executorService);
-        newIptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
+        newIptables.setFloodingProtectionConfiguration(this.floodingProtectionConfiguration);
         newIptables.applyRules();
         logger.debug("Managing port forwarding...");
         enableForwarding(this.allowForwarding);
@@ -423,17 +424,17 @@ public class LinuxFirewall {
         this.allowForwarding = false;
     }
 
-    public boolean isFloodingProtectionEnabled() {
-        return this.floodingProtectionStatus;
+    public IntrusionDetectionConfiguration getFloodingProtectionConfiguration() {
+        return this.floodingProtectionConfiguration;
     }
 
-    public void setFloodingProtectionStatus(boolean status) {
-        this.floodingProtectionStatus = status;
+    public void setFloodingProtectionConfiguration(IntrusionDetectionConfiguration floodingProtectionConfiguration) {
+        this.floodingProtectionConfiguration = floodingProtectionConfiguration;
     }
 
     private void update() throws KuraException {
         synchronized (lock) {
-            this.iptables.setFloodingProtectionStatus(this.floodingProtectionStatus);
+            this.iptables.setFloodingProtectionConfiguration(this.floodingProtectionConfiguration);
             this.iptables.clearAllKuraChains();
             applyRules();
             this.iptables.saveKuraChains();

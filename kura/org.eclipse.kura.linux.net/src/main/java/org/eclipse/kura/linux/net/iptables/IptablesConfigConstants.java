@@ -109,10 +109,10 @@ public class IptablesConfigConstants {
             "-A prerouting-kura -p icmp -j DROP", "-A prerouting-kura -f -j DROP" };
 
     protected static final String[] FLOODING_PROTECTION = {
-            "-A input-kura -p tcp -m connlimit --connlimit-above 111 -j REJECT --reject-with tcp-reset",
-            "-A input-kura -p tcp --tcp-flags RST RST -m limit --limit 2/s --limit-burst 2 -j ACCEPT",
+            "-A input-kura -p tcp -m connlimit --connlimit-above KURA_CONN_LIMIT -j REJECT --reject-with tcp-reset",
+            "-A input-kura -p tcp --tcp-flags RST RST -m limit --limit KURA_RST_LIMIT/s --limit-burst KURA_RST_BURST_LIMIT -j ACCEPT",
             "-A input-kura -p tcp --tcp-flags RST RST -j DROP",
-            "-A input-kura -p tcp -m conntrack --ctstate NEW -m limit --limit 60/s --limit-burst 20 -j ACCEPT",
+            "-A input-kura -p tcp -m conntrack --ctstate NEW -m limit --limit KURA_LIMIT/s --limit-burst KURA_BURST_LIMIT -j ACCEPT",
             "-A input-kura -p tcp -m conntrack --ctstate NEW -j DROP" };
 
     protected IptablesConfigConstants() {

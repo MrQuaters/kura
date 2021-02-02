@@ -34,6 +34,7 @@ import org.eclipse.kura.KuraIOException;
 import org.eclipse.kura.executor.Command;
 import org.eclipse.kura.executor.CommandExecutorService;
 import org.eclipse.kura.executor.CommandStatus;
+import org.eclipse.kura.security.IntrusionDetectionConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public class IptablesConfig extends IptablesConfigConstants {
     private final Set<NATRule> autoNatRules;
     private final Set<NATRule> natRules;
     private boolean allowIcmp;
-    private boolean floodingProtectionStatus;
+    private IntrusionDetectionConfiguration floodingProtectionConfiguration;
     private CommandExecutorService executorService;
 
     public IptablesConfig() {
@@ -54,7 +55,7 @@ public class IptablesConfig extends IptablesConfigConstants {
         this.portForwardRules = new LinkedHashSet<>();
         this.autoNatRules = new LinkedHashSet<>();
         this.natRules = new LinkedHashSet<>();
-        this.floodingProtectionStatus = false;
+        this.floodingProtectionConfiguration = new IntrusionDetectionConfiguration();
         this.allowIcmp = true;
     }
 
@@ -64,7 +65,7 @@ public class IptablesConfig extends IptablesConfigConstants {
         this.autoNatRules = new LinkedHashSet<>();
         this.natRules = new LinkedHashSet<>();
         this.allowIcmp = true;
-        this.floodingProtectionStatus = false;
+        this.floodingProtectionConfiguration = new IntrusionDetectionConfiguration();
         this.executorService = executorService;
     }
 
@@ -75,16 +76,16 @@ public class IptablesConfig extends IptablesConfigConstants {
         this.autoNatRules = autoNatRules;
         this.natRules = natRules;
         this.allowIcmp = allowIcmp;
-        this.floodingProtectionStatus = false;
+        this.floodingProtectionConfiguration = new IntrusionDetectionConfiguration();
         this.executorService = executorService;
     }
 
-    public boolean isFloodingProtectionEnabled() {
-        return this.floodingProtectionStatus;
+    public IntrusionDetectionConfiguration getFloodingProtectionConfiguration() {
+        return this.floodingProtectionConfiguration;
     }
 
-    public void setFloodingProtectionStatus(boolean floodingProtectionStatus) {
-        this.floodingProtectionStatus = floodingProtectionStatus;
+    public void setFloodingProtectionConfiguration(IntrusionDetectionConfiguration floodingProtectionConfiguration) {
+        this.floodingProtectionConfiguration = floodingProtectionConfiguration;
     }
 
     /*
@@ -202,7 +203,7 @@ public class IptablesConfig extends IptablesConfigConstants {
             writer.println(ADD_OUTPUT_KURA_CHAIN);
             saveNatTable(writer);
             writer.println(COMMIT);
-            if (isFloodingProtectionEnabled()) {
+            if (this.floodingProtectionConfiguration.isEnabled()) {
                 writer.println(STAR_MANGLE);
                 writer.println(INPUT_ACCEPT_POLICY);
                 writer.println(OUTPUT_ACCEPT_POLICY);
@@ -321,7 +322,7 @@ public class IptablesConfig extends IptablesConfigConstants {
         writePortForwardRulesToFilterTable(writer);
         writeAutoNatRulesToFilterTable(writer);
         writeNatRulesToFilterTable(writer);
-        if (isFloodingProtectionEnabled()) {
+        if (this.floodingProtectionConfiguration.isEnabled()) {
             writeFloodingProtectionRulesToFilterTable(writer);
         }
         writer.println(RETURN_INPUT_KURA_CHAIN);
@@ -416,14 +417,24 @@ public class IptablesConfig extends IptablesConfigConstants {
     private void writeFloodingProtectionRulesToFilterTable(PrintWriter writer) {
         for (String floodProtection : FLOODING_PROTECTION) {
             if (writer == null) {
-                CommandStatus status = execute((IPTABLES_COMMAND + " -t " + FILTER + " " + floodProtection).split(" "));
+                CommandStatus status = execute(
+                        (IPTABLES_COMMAND + " -t " + FILTER + " " + replaceVariables(floodProtection)).split(" "));
                 if (!status.getExitStatus().isSuccessful()) {
                     logger.error("Failed to apply forward rules to filter table");
                 }
             } else {
-                writer.println(floodProtection);
+                writer.println(replaceVariables(floodProtection));
             }
         }
+    }
+
+    private String replaceVariables(String floodProtection) {
+        return floodProtection
+                .replace("KURA_CONN_LIMIT", Integer.toString(floodingProtectionConfiguration.getConnLimit()))
+                .replace("KURA_LIMIT", Integer.toString(floodingProtectionConfiguration.getLimit()))
+                .replace("KURA_BURST_LIMIT", Integer.toString(floodingProtectionConfiguration.getBurstLimit()))
+                .replace("KURA_RST_LIMIT", Integer.toString(floodingProtectionConfiguration.getRstLimit()))
+                .replace("KURA_RST_BURST_LIMIT", Integer.toString(floodingProtectionConfiguration.getRstBurstLimit()));
     }
 
     private void saveNatTable(PrintWriter writer) {
@@ -740,7 +751,7 @@ public class IptablesConfig extends IptablesConfigConstants {
         writePortForwardRulesToNatTable(null);
         writeAutoNatRulesToNatTable(null);
         writeNatRulesToNatTable(null);
-        if (isFloodingProtectionEnabled()) {
+        if (this.floodingProtectionConfiguration.isEnabled()) {
             writeFloodingProtectionRulesToFilterTable(null);
             writeFoodingProtectionRulesToMangleTable(null);
         }

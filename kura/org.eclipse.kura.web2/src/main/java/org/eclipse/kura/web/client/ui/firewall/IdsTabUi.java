@@ -218,6 +218,12 @@ public class IdsTabUi extends AbstractServicesUi implements Tab {
     }
 
     @Override
+    protected void renderTextField(final GwtConfigParameter param, boolean isFirstInstance, FormGroup formGroup) {
+        super.renderTextField(param, isFirstInstance, formGroup);
+        this.fields.add(formGroup);
+    }
+
+    @Override
     public void refresh() {
         RequestQueue.submit(context -> this.gwtXSRFService
                 .generateSecurityToken(context.callback(token -> IdsTabUi.this.gwtComponentService
