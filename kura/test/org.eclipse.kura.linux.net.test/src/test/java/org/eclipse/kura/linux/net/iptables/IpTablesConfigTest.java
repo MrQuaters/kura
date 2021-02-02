@@ -31,6 +31,7 @@ import org.eclipse.kura.executor.Command;
 import org.eclipse.kura.net.IP4Address;
 import org.eclipse.kura.net.IPAddress;
 import org.eclipse.kura.net.NetworkPair;
+import org.eclipse.kura.security.IntrusionDetectionConfiguration;
 import org.junit.Test;
 
 public class IpTablesConfigTest extends FirewallTestUtils {
@@ -187,9 +188,10 @@ public class IpTablesConfigTest extends FirewallTestUtils {
     public void applyRulesTest() {
         setUpMock();
 
+        IntrusionDetectionConfiguration config = new IntrusionDetectionConfiguration(true, 111, 60, 20, 2, 2);
         IptablesConfig iptablesConfig = new IptablesConfig(new LinkedHashSet<>(), new LinkedHashSet<>(),
                 new LinkedHashSet<>(), new LinkedHashSet<>(), false, executorServiceMock);
-        iptablesConfig.setFloodingProtectionStatus(true);
+        iptablesConfig.setFloodingProtectionConfiguration(config);
         iptablesConfig.applyRules();
 
         for (Command c : commandApplyList) {
