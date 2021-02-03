@@ -203,26 +203,24 @@ public class IptablesConfig extends IptablesConfigConstants {
             writer.println(ADD_OUTPUT_KURA_CHAIN);
             saveNatTable(writer);
             writer.println(COMMIT);
-            if (this.floodingProtectionConfiguration.isEnabled()) {
-                writer.println(STAR_MANGLE);
-                writer.println(INPUT_ACCEPT_POLICY);
-                writer.println(OUTPUT_ACCEPT_POLICY);
-                writer.println(FORWARD_ACCEPT_POLICY);
-                writer.println(PREROUTING_ACCEPT_POLICY);
-                writer.println(POSTROUTING_ACCEPT_POLICY);
-                writer.println(PREROUTING_KURA_POLICY);
-                writer.println(POSTROUTING_KURA_POLICY);
-                writer.println(INPUT_KURA_POLICY);
-                writer.println(OUTPUT_KURA_POLICY);
-                writer.println(FORWARD_KURA_POLICY);
-                writer.println(ADD_PREROUTING_KURA_CHAIN);
-                writer.println(ADD_POSTROUTING_KURA_CHAIN);
-                writer.println(ADD_INPUT_KURA_CHAIN);
-                writer.println(ADD_OUTPUT_KURA_CHAIN);
-                writer.println(ADD_FORWARD_KURA_CHAIN);
-                saveMangleTable(writer);
-                writer.println(COMMIT);
-            }
+            writer.println(STAR_MANGLE);
+            writer.println(INPUT_ACCEPT_POLICY);
+            writer.println(OUTPUT_ACCEPT_POLICY);
+            writer.println(FORWARD_ACCEPT_POLICY);
+            writer.println(PREROUTING_ACCEPT_POLICY);
+            writer.println(POSTROUTING_ACCEPT_POLICY);
+            writer.println(PREROUTING_KURA_POLICY);
+            writer.println(POSTROUTING_KURA_POLICY);
+            writer.println(INPUT_KURA_POLICY);
+            writer.println(OUTPUT_KURA_POLICY);
+            writer.println(FORWARD_KURA_POLICY);
+            writer.println(ADD_PREROUTING_KURA_CHAIN);
+            writer.println(ADD_POSTROUTING_KURA_CHAIN);
+            writer.println(ADD_INPUT_KURA_CHAIN);
+            writer.println(ADD_OUTPUT_KURA_CHAIN);
+            writer.println(ADD_FORWARD_KURA_CHAIN);
+            saveMangleTable(writer);
+            writer.println(COMMIT);
         } catch (IOException e) {
             throw new KuraIOException(e, "save() :: failed to create rules file");
         }
@@ -506,7 +504,9 @@ public class IptablesConfig extends IptablesConfigConstants {
     }
 
     private void saveMangleTable(PrintWriter writer) {
-        writeFoodingProtectionRulesToMangleTable(writer);
+        if (this.floodingProtectionConfiguration.isEnabled()) {
+            writeFoodingProtectionRulesToMangleTable(writer);
+        }
         writer.println(RETURN_POSTROUTING_KURA_CHAIN);
         writer.println(RETURN_PREROUTING_KURA_CHAIN);
         writer.println(RETURN_INPUT_KURA_CHAIN);
