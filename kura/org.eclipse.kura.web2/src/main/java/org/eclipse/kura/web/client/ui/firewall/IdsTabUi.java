@@ -12,7 +12,9 @@
  ******************************************************************************/
 package org.eclipse.kura.web.client.ui.firewall;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.kura.web.client.messages.Messages;
 import org.eclipse.kura.web.client.ui.AbstractServicesUi;
@@ -59,6 +61,7 @@ public class IdsTabUi extends AbstractServicesUi implements Tab {
     private boolean dirty;
     private boolean initialized;
     private GwtConfigComponent originalConfig;
+    private List<GwtConfigComponent> configurations = new ArrayList<>();
 
     @UiField
     Button apply;
@@ -142,9 +145,13 @@ public class IdsTabUi extends AbstractServicesUi implements Tab {
                     FailureHandler.handle(ex);
                     return;
                 }
+                // Update the configuration to all the components
+                for (GwtConfigComponent config : IdsTabUi.this.configurations) {
+                    config.setParameters(IdsTabUi.this.configurableComponent.getParameters());
+                }
                 RequestQueue.submit(context -> this.gwtXSRFService.generateSecurityToken(
-                        context.callback(token -> IdsTabUi.this.gwtComponentService.updateComponentConfiguration(token,
-                                IdsTabUi.this.configurableComponent, context.callback(data -> {
+                        context.callback(token -> IdsTabUi.this.gwtComponentService.updateComponentConfigurations(token,
+                                IdsTabUi.this.configurations, context.callback(data -> {
                                     IdsTabUi.this.notificationModal.hide();
                                     logger.info(MSGS.info() + ": " + MSGS.deviceConfigApplied());
                                     IdsTabUi.this.apply.setEnabled(false);
@@ -228,8 +235,11 @@ public class IdsTabUi extends AbstractServicesUi implements Tab {
         RequestQueue.submit(context -> this.gwtXSRFService
                 .generateSecurityToken(context.callback(token -> IdsTabUi.this.gwtComponentService
                         .findComponentConfigurations(token, SERVICES_FILTER, context.callback(data -> {
+                            this.configurations.clear();
                             if (!data.isEmpty()) {
                                 GwtConfigComponent firstConfig = data.get(0);
+                                // Save the configuration of all registered services
+                                configurations.addAll(data);
                                 for (int index = 1; index < data.size(); index++) {
                                     firstConfig.getParameters().addAll(data.get(index).getParameters());
                                 }

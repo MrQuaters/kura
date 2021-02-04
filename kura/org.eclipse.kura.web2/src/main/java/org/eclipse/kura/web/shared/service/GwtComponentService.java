@@ -145,6 +145,27 @@ public interface GwtComponentService extends RemoteService {
     public void updateComponentConfiguration(GwtXSRFToken xsrfToken, GwtConfigComponent configComponent)
             throws GwtKuraException;
 
+    /**
+     * This method gets a list of updated components configurations in form of a list of {@link GwtConfigComponent} and
+     * applies those
+     * changes using the {@link org.eclipse.kura.configuration.ConfigurationService}
+     *
+     * @param xsrfToken
+     *            the cross site request forgery token.
+     * @param configComponents
+     *            a List<GwtConfigComponent> instance that contains the updated configurations.
+     * @throws GwtKuraException
+     *             if the XSRF verification fails.
+     * @throws GwtKuraException
+     *             if the Configuration Service cannot be located.
+     * @throws GwtKuraException
+     *             if the current component configuration cannot be extracted from the Configuration Service.
+     * @throws GwtKuraException
+     *             if the component configuration changes could not be applied.
+     */
+    public void updateComponentConfigurations(GwtXSRFToken xsrfToken, List<GwtConfigComponent> configComponents)
+            throws GwtKuraException;
+
     public void createFactoryComponent(GwtXSRFToken xsrfToken, String factoryPid, String pid) throws GwtKuraException;
 
     public void createFactoryComponent(GwtXSRFToken xsrfToken, String factoryPid, String pid,
